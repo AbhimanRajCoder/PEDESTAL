@@ -335,8 +335,14 @@
                             <option value="freelancer" class="bg-dark">Freelancer</option>
                             <option value="unemployed" class="bg-dark">Unemployed / Transitioning</option>
                             <option value="retired" class="bg-dark">Retired</option>
+                            <option value="other" class="bg-dark">Other</option>
                         </select>
                         <i data-lucide="briefcase" class="dropdown-icon"></i>
+                    </div>
+                    <!-- Hidden Specification Field for Occupation -->
+                    <div id="occupation-other-group" class="input-group hidden col-span-full">
+                        <input type="text" id="occupation-other" class="form-input" placeholder=" ">
+                        <label for="occupation-other" class="form-label">Please specify your occupation</label>
                     </div>
                 </div>
 
@@ -377,8 +383,15 @@
                         <option value="retirement" class="bg-dark">Retirement Planning</option>
                         <option value="saving" class="bg-dark">Budgeting & Saving</option>
                         <option value="stocks" class="bg-dark">Understand Stock Markets</option>
+                        <option value="other" class="bg-dark">Other</option>
                     </select>
                     <i data-lucide="target" class="dropdown-icon"></i>
+                </div>
+
+                <!-- Hidden Specification Field for Goal -->
+                <div id="goal-other-group" class="input-group hidden">
+                    <input type="text" id="goal-other" class="form-input" placeholder=" ">
+                    <label for="goal-other" class="form-label">Please specify your goal</label>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-6">
@@ -392,6 +405,12 @@
                             <option value="other" class="bg-dark">Other</option>
                         </select>
                         <i data-lucide="users" class="dropdown-icon"></i>
+                    </div>
+
+                    <!-- Hidden Specification Field for Referral -->
+                    <div id="referral-other-group" class="input-group hidden">
+                        <input type="text" id="referral-other" class="form-input" placeholder=" ">
+                        <label for="referral-other" class="form-label">Please specify</label>
                     </div>
 
                     <div class="input-group">
@@ -548,6 +567,31 @@
             document.addEventListener('click', () => {
                 document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('active'));
             });
+
+            // Handle "Other" field visibility
+            const handleOtherVisibility = (selectId, otherGroupId) => {
+                const select = document.getElementById(selectId);
+                const otherGroup = document.getElementById(otherGroupId);
+                
+                select.addEventListener('change', () => {
+                    if (select.value === 'other') {
+                        otherGroup.classList.remove('hidden');
+                        gsap.fromTo(otherGroup, 
+                            { height: 0, opacity: 0, marginBottom: 0 },
+                            { height: 'auto', opacity: 1, marginBottom: '2rem', duration: 0.4, ease: "power2.out" }
+                        );
+                    } else {
+                        gsap.to(otherGroup, { 
+                            height: 0, opacity: 0, marginBottom: 0, duration: 0.3, ease: "power2.in",
+                            onComplete: () => otherGroup.classList.add('hidden')
+                        });
+                    }
+                });
+            };
+
+            handleOtherVisibility('occupation', 'occupation-other-group');
+            handleOtherVisibility('goal', 'goal-other-group');
+            handleOtherVisibility('referral', 'referral-other-group');
         }
 
         // Initialize on load
@@ -561,16 +605,20 @@
             const originalText = btn.innerHTML;
             
             // Collect Form Data
+            const occupationVal = document.getElementById('occupation').value;
+            const goalVal = document.getElementById('goal').value;
+            const referralVal = document.getElementById('referral').value;
+            
             const formData = {
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
                 mobile: document.getElementById('mobile').value,
-                occupation: document.getElementById('occupation').value,
+                occupation: occupationVal === 'other' ? `Other: ${document.getElementById('occupation-other').value}` : occupationVal,
                 age: document.getElementById('age').value,
                 literacy: document.getElementById('literacy').value,
                 os: document.getElementById('os').value,
-                goal: document.getElementById('goal').value,
-                referral: document.getElementById('referral').value,
+                goal: goalVal === 'other' ? `Other: ${document.getElementById('goal-other').value}` : goalVal,
+                referral: referralVal === 'other' ? `Other: ${document.getElementById('referral-other').value}` : referralVal,
                 interview: document.getElementById('interview').value
             };
 
