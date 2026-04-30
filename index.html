@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedestal | The Gamified Financial Ecosystem</title>
     <meta name="description" content="A dark, premium, high-conversion fintech UI. Gamified financial literacy for India's New Money Generation.">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -756,16 +757,7 @@
         </div>
     </div>
 
-    <!-- Background Music & Controls -->
-    <audio id="bg-audio" loop autoplay>
-        <source src="bgmusic.mp3" type="audio/mpeg">
-    </audio>
-
-    <button id="audio-toggle" class="fixed bottom-8 left-8 z-50 w-14 h-14 rounded-full glass-card border border-border flex items-center justify-center text-slate-400 hover:text-white hover:border-neon-green transition-all duration-300 group shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden">
-        <div class="absolute inset-0 rounded-full bg-neon-green/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div id="icon-muted" class="relative z-10 flex items-center justify-center transition-transform duration-300 transform scale-100"><i data-lucide="volume-x" class="w-6 h-6"></i></div>
-        <div id="icon-playing" class="relative z-10 hidden items-center justify-center transition-transform duration-300 transform scale-0"><i data-lucide="music" class="w-6 h-6 animate-pulse-glow"></i></div>
-    </button>
+    <script src="audio-manager.js"></script>
 
     <!-- Initialize Icons & GSAP Scripts -->
     <script>
