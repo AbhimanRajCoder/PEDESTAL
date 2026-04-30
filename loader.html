@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedestal | Luxury Fintech Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --bg: #050505;
+            --card-surface: rgba(15, 15, 20, 0.9);
+            --gold-primary: #d4af37;
+            --gold-light: #f9e2af;
+            --gold-deep: #b8860b;
+            --border-gold: rgba(212, 175, 55, 0.15);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.4);
+            --gold-glow: rgba(212, 175, 55, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #loader-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+        }
+
+        /* Ambient Orbits */
+        .orbit {
+            position: absolute;
+            border: 1px solid rgba(212, 175, 55, 0.05);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Card Styles */
+        .card {
+            position: absolute;
+            width: 260px;
+            height: 340px;
+            background: var(--card-surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-gold);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 
+                        inset 0 0 20px rgba(212, 175, 55, 0.05);
+            transform-style: preserve-3d;
+            perspective: 1200px;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        /* Light Sweep Effect */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -150%;
+            width: 100%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(255, 255, 255, 0.05),
+                transparent
+            );
+            transform: rotate(30deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+
+        .bias-card {
+            visibility: hidden;
+        }
+
+        .bias-card h3 {
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold-primary);
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold-deep));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bias-card p {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+
+        /* Core Card Specifics */
+        .core-card {
+            visibility: hidden;
+            z-index: 10;
+            width: 300px;
+            height: 380px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 20px var(--gold-glow);
+        }
+
+        .pedestal-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.4em;
+            color: var(--gold-primary);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .core-headline {
+            font-weight: 900;
+            font-size: 1.6rem;
+            line-height: 1.1;
+            margin-bottom: 32px;
+            background: linear-gradient(135deg, #fff 0%, var(--gold-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .divider-line {
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--gold-primary), transparent);
+            margin-bottom: 32px;
+            box-shadow: 0 0 15px var(--gold-primary);
+        }
+
+        .core-subtext {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        /* Progress System */
+        .progress-container {
+            position: absolute;
+            bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            z-index: 15;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+        }
+
+        .progress-ring .track {
+            stroke: rgba(212, 175, 55, 0.1);
+        }
+
+        .progress-ring .bar {
+            stroke: var(--gold-primary);
+            stroke-dasharray: 188.4; /* 2 * PI * 30 */
+            stroke-dashoffset: 188.4;
+            filter: drop-shadow(0 0 5px var(--gold-primary));
+        }
+
+        .progress-status {
+            margin-top: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            color: var(--gold-light);
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Gold Particles */
+        .gold-dust {
+            position: absolute;
+            background: var(--gold-light);
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(1px);
+        }
+
+        @media (max-width: 480px) {
+            .card { width: 220px; height: 300px; }
+            .core-card { width: 260px; height: 340px; }
+            .core-headline { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader-container">
+        <!-- Background Orbits -->
+        <div class="orbit" id="orbit-1" style="width: 400px; height: 400px;"></div>
+        <div class="orbit" id="orbit-2" style="width: 600px; height: 600px;"></div>
+        <div class="orbit" id="orbit-3" style="width: 800px; height: 800px;"></div>
+
+        <!-- Bias Cards -->
+        <div class="card bias-card" id="card-1">
+            <h3>FOLLOWING HYPE</h3>
+            <p>Institutional Traps Identified</p>
+        </div>
+
+        <div class="card bias-card" id="card-2">
+            <h3>PANIC SELLING</h3>
+            <p>Emotional Volatility Detected</p>
+        </div>
+
+        <div class="card bias-card" id="card-3">
+            <h3>OVERCONFIDENCE</h3>
+            <p>Risk Calibration Required</p>
+        </div>
+
+        <div class="card bias-card" id="card-4">
+            <h3>FOMO BUYING</h3>
+            <p>Market Impulsivity Analyzed</p>
+        </div>
+
+        <!-- Core Final Card -->
+        <div class="card core-card" id="core-card">
+            <div class="pedestal-label">PEDESTAL PRESTIGE</div>
+            <h2 class="core-headline">Calibrating Your<br>Instincts.</h2>
+            <div class="divider-line"></div>
+            <p class="core-subtext">Mapping cognitive patterns to<br>high-stakes environments.</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="progress-container" id="progress-container">
+            <svg class="progress-ring">
+                <circle class="track" cx="30" cy="30" r="28"></circle>
+                <circle class="bar" cx="30" cy="30" r="28" id="progress-bar"></circle>
+            </svg>
+            <div class="progress-status" id="progress-status">Initializing Core...</div>
+        </div>
+    </div>
+
+    <script>
+        const tl = gsap.timeline();
+
+        // 1. Initial State & Particles
+        function initScene() {
+            const container = document.getElementById('loader-container');
+            
+            // Orbits
+            gsap.set(".orbit", { opacity: 0, scale: 0.5 });
+            gsap.to("#orbit-1", { rotation: 360, duration: 40, repeat: -1, ease: "none" });
+            gsap.to("#orbit-2", { rotation: -360, duration: 60, repeat: -1, ease: "none" });
+            gsap.to("#orbit-3", { rotation: 360, duration: 80, repeat: -1, ease: "none" });
+
+            // Gold Dust
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'gold-dust';
+                const size = Math.random() * 2 + 0.5;
+                p.style.width = `${size}px`;
+                p.style.height = `${size}px`;
+                p.style.left = `${Math.random() * 100}%`;
+                p.style.top = `${Math.random() * 100}%`;
+                p.style.opacity = Math.random() * 0.4;
+                container.appendChild(p);
+                
+                gsap.to(p, {
+                    y: "-=100",
+                    x: `+=${(Math.random() - 0.5) * 50}`,
+                    opacity: 0,
+                    duration: 5 + Math.random() * 5,
+                    repeat: -1,
+                    delay: Math.random() * 5,
+                    ease: "power1.out"
+                });
+            }
+        }
+
+        initScene();
+
+        const cards = [
+            document.getElementById('card-1'),
+            document.getElementById('card-2'),
+            document.getElementById('card-3'),
+            document.getElementById('card-4')
+        ];
+        const coreCard = document.getElementById('core-card');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressStatus = document.getElementById('progress-status');
+
+        // 1. ENTRY
+        tl.to("#loader-container", { opacity: 1, duration: 0.8, ease: "power2.inOut" });
+        tl.to(".orbit", { opacity: 1, scale: 1, duration: 1.2, stagger: 0.1, ease: "power3.out" }, 0.2);
+
+        // 2. CARD DEAL
+        gsap.set(cards, { 
+            visibility: "visible", 
+            x: 0, 
+            y: 0, 
+            opacity: 0,
+            scale: 0.8,
+            rotationX: 45,
+            transformPerspective: 1200
+        });
+
+        const cardPositions = [
+            { x: -280, y: -200, rotation: -12 },
+            { x: 280, y: -200, rotation: 12 },
+            { x: -280, y: 200, rotation: -6 },
+            { x: 280, y: 200, rotation: 6 }
+        ];
+
+        if (window.innerWidth < 768) {
+            const offset = 120;
+            cardPositions[0] = { x: -offset, y: -220, rotation: -10 };
+            cardPositions[1] = { x: offset, y: -220, rotation: 10 };
+            cardPositions[2] = { x: -offset, y: 220, rotation: -10 };
+            cardPositions[3] = { x: offset, y: 220, rotation: 10 };
+        }
+
+        cards.forEach((card, index) => {
+            const pos = cardPositions[index];
+            
+            tl.to(card, {
+                opacity: 1,
+                scale: 1,
+                x: pos.x,
+                y: pos.y,
+                rotation: pos.rotation,
+                rotationX: 0,
+                duration: 0.8,
+                ease: "expo.out",
+                onStart: () => {
+                    // Light Sweep Animation
+                    gsap.to(card, {
+                        "--sweep-x": "200%",
+                        duration: 1,
+                        ease: "power2.inOut"
+                    });
+                }
+            }, 0.5 + index * 0.15);
+
+            // Continuous subtle float
+            gsap.to(card, {
+                y: pos.y + 15,
+                duration: 3 + index,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+        });
+
+        // 3. COLLAPSE
+        tl.to(cards, {
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 0.4,
+            opacity: 0,
+            duration: 0.6,
+            stagger: 0.08,
+            ease: "power4.in"
+        }, 2.0);
+
+        // 4. CORE CARD
+        tl.set(coreCard, { visibility: "visible", opacity: 0, scale: 0.9, y: 40 }, 2.2);
+        tl.to(coreCard, {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            duration: 1,
+            ease: "power4.out"
+        }, 2.2);
+
+        // Text reveal
+        tl.from(".pedestal-label", { opacity: 0, letterSpacing: "1em", duration: 0.8 }, 2.4);
+        tl.from(".core-headline", { opacity: 0, y: 20, duration: 0.8 }, 2.6);
+        tl.from(".divider-line", { scaleX: 0, duration: 1, ease: "power3.out" }, 2.8);
+        tl.from(".core-subtext", { opacity: 0, duration: 0.8 }, 3.0);
+
+        // 5. PROGRESS
+        tl.to(progressContainer, { opacity: 1, duration: 0.8 }, 2.8);
+        tl.to(progressBar, {
+            strokeDashoffset: 0,
+            duration: 1.5,
+            ease: "power1.inOut"
+        }, 3.0);
+
+        const statusTexts = ["Analyzing Patterns", "Logic Calibration", "System Ready"];
+        statusTexts.forEach((txt, i) => {
+            tl.add(() => {
+                gsap.to(progressStatus, {
+                    opacity: 0,
+                    duration: 0.2,
+                    onComplete: () => {
+                        progressStatus.textContent = txt;
+                        gsap.to(progressStatus, { opacity: 0.8, duration: 0.2 });
+                    }
+                });
+            }, 3.0 + (i * 0.5));
+        });
+
+        // 6. EXIT
+        tl.to("#loader-container", {
+            scale: 1.1,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power3.inOut"
+        }, 4.5);
+
+    </script>
+</body>
+</html>

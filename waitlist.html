@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Waitlist | Pedestal</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: 'var(--bg-dark)',
+                        card: 'var(--bg-card)',
+                        border: 'var(--border-color)',
+                        neon: {
+                            green: 'var(--neon-green)',
+                            blue: 'var(--neon-blue)',
+                            purple: 'var(--neon-purple)',
+                            pink: 'var(--neon-pink)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        .input-group {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .form-input {
+            width: 100%;
+            background: rgba(15, 15, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .form-input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(107, 143, 179, 0.2), inset 0 0 10px rgba(107, 143, 179, 0.05);
+            background: rgba(20, 20, 30, 0.95);
+            transform: translateY(-1px);
+        }
+        .form-input:hover:not(:focus) {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(25, 25, 35, 0.85);
+        }
+        
+        /* Premium Select Styling */
+        select.form-input {
+            cursor: pointer;
+            padding-right: 3rem;
+            background-image: linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%);
+            background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px);
+            background-size: 5px 5px, 5px 5px;
+            background-repeat: no-repeat;
+        }
+        
+        select.form-input option {
+            background: #121217;
+            color: #fff;
+            padding: 1rem;
+        }
+
+        .dropdown-icon {
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        
+        .input-group:focus-within .dropdown-icon {
+            color: var(--neon-blue);
+            transform: translateY(-50%) rotate(180deg);
+        }
+        .form-label {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: transparent;
+            padding: 0 0.5rem;
+        }
+        textarea.form-input + .form-label {
+            top: 1.25rem;
+            transform: none;
+        }
+        /* Floating Label Effect */
+        .form-input:focus ~ .form-label,
+        .form-input:not(:placeholder-shown) ~ .form-label {
+            top: 0;
+            font-size: 0.75rem;
+            color: var(--neon-blue);
+            background: var(--bg-dark);
+            border-radius: 4px;
+        }
+        
+        /* Custom Dropdown Styling */
+        .custom-select-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        .custom-select-trigger {
+            width: 100%;
+            background: rgba(15, 15, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+        .custom-select-trigger:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(25, 25, 35, 0.85);
+        }
+        .custom-select-container.active {
+            z-index: 1000;
+        }
+        .custom-select-container.active .custom-select-trigger {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(107, 143, 179, 0.2);
+            background: rgba(20, 20, 30, 0.95);
+        }
+        .custom-select-options {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: rgba(20, 20, 25, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            backdrop-filter: blur(20px);
+            z-index: 100001;
+            max-height: 250px;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+        .custom-select-container.active .custom-select-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .custom-option {
+            padding: 0.85rem 1.25rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .custom-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            padding-left: 1.5rem;
+        }
+        .custom-option.selected {
+            background: rgba(var(--neon-blue-rgb), 0.1);
+            color: var(--neon-blue);
+            font-weight: 600;
+        }
+        .custom-option.selected::before {
+            content: '●';
+            font-size: 8px;
+            margin-right: 8px;
+        }
+        
+        /* Scrollbar for custom dropdown */
+        .custom-select-options::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-select-options::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-select-options::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        /* Hide original selects but keep them for form submission */
+        .hidden-select {
+            display: none !important;
+        }
+
+        /* Success Animation */
+        .success-overlay {
+            clip-path: circle(0% at 50% 50%);
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-slate-200 antialiased selection:bg-neon-purple selection:text-white min-h-screen relative overflow-x-hidden">
+    
+    <!-- Background Elements -->
+    <div class="bg-grid"></div>
+    <div id="data-streams-container" class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden"></div>
+    <div class="bg-glow-orb orb-1"></div>
+    <div class="bg-glow-orb orb-2"></div>
+    <div class="bg-glow-orb orb-3"></div>
+    <div id="interactive-glow"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass border-b border-border py-4 transition-all duration-300">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <a href="index" class="flex items-center gap-0 nav-anim">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+                    <img src="logo.png" alt="Pedestal Logo" class="w-full h-full object-contain">
+                </div>
+                <span class="font-display font-bold text-2xl tracking-wide text-white">Pedestal</span>
+            </a>
+            
+            <div class="hidden md:flex items-center gap-8 nav-anim">
+                <a href="index" class="text-sm font-medium hover:text-white transition-colors">Home</a>
+                <a href="index#problem" class="text-sm font-medium hover:text-white transition-colors">The Crisis</a>
+                <a href="index#features" class="text-sm font-medium hover:text-white transition-colors">Ecosystem</a>
+                <a href="index#learning" class="text-sm font-medium hover:text-white transition-colors">Micro-Lessons</a>
+                <a href="waitlist" class="text-sm font-medium hover:text-white transition-colors">Waitlist</a>
+            </div>
+            
+            <div class="flex items-center gap-4 nav-anim">
+                <a href="waitlist" class="hidden sm:flex btn-primary px-6 py-2.5 rounded-full text-sm items-center gap-2 group">
+                    <span>Start Learning</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+                
+                <!-- Mobile Menu Toggle -->
+                <button id="menu-toggle" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl glass border border-border text-white">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] glass hidden flex-col items-center justify-center gap-8 p-6 text-center transform translate-x-full opacity-0">
+        <button id="menu-close" class="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-full glass border border-border text-white">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <a href="index" class="mobile-link text-2xl font-display font-bold text-white">Home</a>
+        <a href="index#problem" class="mobile-link text-2xl font-display font-bold text-white">The Crisis</a>
+        <a href="index#features" class="mobile-link text-2xl font-display font-bold text-white">Ecosystem</a>
+        <a href="index#learning" class="mobile-link text-2xl font-display font-bold text-white">Micro-Lessons</a>
+        <a href="waitlist" class="mobile-link text-2xl font-display font-bold text-white">Waitlist</a>
+        <a href="waitlist" class="btn-primary px-10 py-4 rounded-xl text-lg mt-4">Start Learning</a>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-6 pt-32 pb-20 relative z-10 flex flex-col items-center">
+        
+        <div class="mb-8 text-center form-header">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden mx-auto mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <img src="logo.png" alt="Pedestal Logo" class="w-full h-full object-contain">
+            </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-purple/10 text-neon-purple text-xs font-bold mb-4 uppercase tracking-wider">
+                <i data-lucide="zap" class="w-3 h-3"></i> VIP Access
+            </div>
+            <h1 class="font-display text-4xl md:text-6xl font-bold text-white mb-4">Join the <span class="text-gradient-primary">Pedestal</span></h1>
+            <p class="text-slate-400">Reserve your spot to get early access and an exclusive founder's badge.</p>
+        </div>
+
+        <div class="glass-card w-full max-w-2xl p-8 md:p-12 rounded-[2rem] border border-border relative form-container mx-auto">
+            <!-- Glow effect behind form -->
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-neon-blue/20 blur-3xl rounded-full pointer-events-none"></div>
+            
+            <form id="waitlist-form" class="relative z-10" onsubmit="handleWaitlist(event)">
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Personal Info -->
+                    <div class="input-group">
+                        <input type="text" id="name" class="form-input" placeholder=" " required>
+                        <label for="name" class="form-label">Full Name</label>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="email" id="email" class="form-input" placeholder=" " required>
+                        <label for="email" class="form-label">Email Address</label>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="tel" id="mobile" class="form-input" placeholder=" ">
+                        <label for="mobile" class="form-label">Mobile Number (Optional)</label>
+                    </div>
+
+                    <div class="input-group">
+                        <select id="occupation" class="form-input appearance-none text-slate-200" required>
+                            <option value="" disabled selected>Current Occupation</option>
+                            <option value="student" class="bg-dark">Student</option>
+                            <option value="salaried" class="bg-dark">Salaried Professional</option>
+                            <option value="founder" class="bg-dark">Self-Employed / Founder</option>
+                            <option value="freelancer" class="bg-dark">Freelancer</option>
+                            <option value="unemployed" class="bg-dark">Unemployed / Transitioning</option>
+                            <option value="retired" class="bg-dark">Retired</option>
+                        </select>
+                        <i data-lucide="briefcase" class="dropdown-icon"></i>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="input-group">
+                        <input type="number" id="age" class="form-input" placeholder=" " required min="13" max="100">
+                        <label for="age" class="form-label">Age</label>
+                    </div>
+
+                    <div class="input-group">
+                        <select id="literacy" class="form-input appearance-none text-slate-200" required>
+                            <option value="" disabled selected>Literacy Level</option>
+                            <option value="1" class="bg-dark">1 - Beginner</option>
+                            <option value="2" class="bg-dark">2 - Novice</option>
+                            <option value="3" class="bg-dark">3 - Intermediate</option>
+                            <option value="4" class="bg-dark">4 - Advanced</option>
+                            <option value="5" class="bg-dark">5 - Expert</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                    </div>
+
+                    <div class="input-group">
+                        <select id="os" class="form-input appearance-none text-slate-200" required>
+                            <option value="" disabled selected>Primary OS</option>
+                            <option value="android" class="bg-dark">Android</option>
+                            <option value="ios" class="bg-dark">iOS</option>
+                        </select>
+                        <i data-lucide="smartphone" class="dropdown-icon"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <select id="goal" class="form-input appearance-none text-slate-200" required>
+                        <option value="" disabled selected>Your Primary Goal</option>
+                        <option value="basics" class="bg-dark">Learn Financial Basics</option>
+                        <option value="wealth" class="bg-dark">Build Wealth & Investing</option>
+                        <option value="taxes" class="bg-dark">Tax Optimization</option>
+                        <option value="retirement" class="bg-dark">Retirement Planning</option>
+                        <option value="saving" class="bg-dark">Budgeting & Saving</option>
+                        <option value="stocks" class="bg-dark">Understand Stock Markets</option>
+                    </select>
+                    <i data-lucide="target" class="dropdown-icon"></i>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="input-group">
+                        <select id="referral" class="form-input appearance-none text-slate-200" required>
+                            <option value="" disabled selected>How did you hear about us?</option>
+                            <option value="founders" class="bg-dark">Founders</option>
+                            <option value="instagram" class="bg-dark">Instagram</option>
+                            <option value="mentors" class="bg-dark">Mentors / Advisor</option>
+                            <option value="linkedin" class="bg-dark">LinkedIn</option>
+                            <option value="other" class="bg-dark">Other</option>
+                        </select>
+                        <i data-lucide="users" class="dropdown-icon"></i>
+                    </div>
+
+                    <div class="input-group">
+                        <select id="interview" class="form-input appearance-none text-slate-200" required>
+                            <option value="" disabled selected>Willingness to Interview?</option>
+                            <option value="yes" class="bg-dark">Yes, I'd love to help!</option>
+                            <option value="no" class="bg-dark">No, not at this time</option>
+                        </select>
+                        <i data-lucide="message-square" class="dropdown-icon"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 mb-8 group cursor-pointer">
+                    <div class="relative flex items-center justify-center mt-1">
+                        <input type="checkbox" id="privacy" class="peer appearance-none w-5 h-5 border border-border rounded bg-dark checked:bg-neon-blue checked:border-neon-blue transition-all cursor-pointer" required>
+                        <i data-lucide="check" class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></i>
+                    </div>
+                    <label for="privacy" class="text-xs md:text-sm text-slate-400 leading-relaxed cursor-pointer group-hover:text-slate-300 transition-colors">
+                        I agree to the privacy policy and consent to receiving updates about Pedestal's development and launch.
+                    </label>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn-primary magnetic-btn w-full py-5 rounded-2xl text-lg font-black flex items-center justify-center gap-3 shadow-[0_10px_40px_rgba(var(--neon-blue-rgb),0.3)]">
+                    SECURE EARLY ACCESS <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                </button>
+            </form>
+
+            <!-- Success Overlay -->
+            <div id="success-state" class="absolute inset-0 bg-dark/95 backdrop-blur-xl z-20 flex flex-col items-center justify-center success-overlay">
+                <div class="w-20 h-20 rounded-full bg-neon-green/20 flex items-center justify-center text-neon-green mb-6 relative">
+                    <div class="absolute inset-0 rounded-full border-2 border-neon-green animate-ping opacity-20"></div>
+                    <i data-lucide="check" class="w-10 h-10"></i>
+                </div>
+                <h3 class="font-display text-2xl font-bold text-white mb-2">You're on the list!</h3>
+                <p class="text-slate-400 text-center px-6">Check your email for your exclusive welcome package.</p>
+                
+                <div class="mt-8 flex gap-2">
+                    <i data-lucide="coins" class="w-5 h-5 text-neon-purple animate-coin"></i>
+                    <span class="text-neon-purple font-bold">+50 PedCoins Added</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark py-12 relative z-10 border-t border-border">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-0">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img src="logo.png" alt="Pedestal Logo" class="w-full h-full object-contain">
+                    </div>
+                    <span class="font-display font-bold text-2xl text-white">Pedestal</span>
+                </div>
+                
+                <div class="flex gap-6 text-sm text-slate-500 font-medium">
+                    <a href="privacy-policy" class="hover:text-neon-green transition-colors">Privacy</a>
+                    <a href="delete-account" class="hover:text-neon-green transition-colors">Data Deletion</a>
+                    <a href="contactus" class="hover:text-neon-green transition-colors">Contact Us</a>
+                </div>
+                
+                <div class="flex gap-4">
+                    <a href="mailto:pedestalfinance@gmail.com" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-slate-400 hover:text-white hover:border-neon-green transition-all" title="Email Us"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                </div>
+            </div>
+            <div class="text-center mt-8 text-xs text-slate-600 font-medium">
+                &copy; 2026 Pedestal Technologies. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="script.js"></script>
+    <script>
+        // Entrance Animations
+        gsap.from(".form-header", { y: -30, opacity: 0, duration: 0.8, ease: "power3.out" });
+        gsap.from(".form-container", { y: 50, opacity: 0, duration: 0.8, delay: 0.2, ease: "power3.out" });
+        gsap.from(".input-group", { x: -20, opacity: 0, duration: 0.5, stagger: 0.1, delay: 0.5, ease: "power2.out" });
+
+        // Handle Form Submission
+        // Custom Dropdown Engine
+        function initializeCustomDropdowns() {
+            const selects = document.querySelectorAll('select.form-input');
+            
+            selects.forEach(select => {
+                const container = select.parentElement;
+                container.classList.add('custom-select-container');
+                container.classList.remove('input-group');
+                
+                // Hide original select
+                select.classList.add('hidden-select');
+                
+                // Create Custom Trigger
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                
+                const triggerText = document.createElement('span');
+                triggerText.textContent = select.options[select.selectedIndex].text;
+                triggerText.className = 'trigger-text opacity-60'; // Default placeholder look
+                
+                const arrow = container.querySelector('.dropdown-icon');
+                
+                trigger.appendChild(triggerText);
+                if (arrow) trigger.appendChild(arrow);
+                
+                // Create Options Panel
+                const optionsPanel = document.createElement('div');
+                optionsPanel.className = 'custom-select-options';
+                
+                Array.from(select.options).forEach((option, index) => {
+                    if (option.disabled) return; // Skip placeholders
+                    
+                    const customOption = document.createElement('div');
+                    customOption.className = 'custom-option';
+                    customOption.textContent = option.textContent;
+                    
+                    customOption.onclick = (e) => {
+                        e.stopPropagation();
+                        select.value = option.value;
+                        triggerText.textContent = option.textContent;
+                        triggerText.classList.remove('opacity-60');
+                        
+                        // Update selected state
+                        optionsPanel.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                        customOption.classList.add('selected');
+                        
+                        container.classList.remove('active');
+                        
+                        // Trigger change event for any listeners
+                        select.dispatchEvent(new Event('change'));
+                    };
+                    
+                    optionsPanel.appendChild(customOption);
+                });
+                
+                container.appendChild(trigger);
+                container.appendChild(optionsPanel);
+                
+                // Toggle Logic
+                trigger.onclick = (e) => {
+                    e.stopPropagation();
+                    
+                    // Close other dropdowns
+                    document.querySelectorAll('.custom-select-container').forEach(other => {
+                        if (other !== container) other.classList.remove('active');
+                    });
+                    
+                    container.classList.toggle('active');
+                };
+            });
+            
+            // Close on click outside
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('active'));
+            });
+        }
+
+        // Initialize on load
+        initializeCustomDropdowns();
+
+        // Handle Form Submission
+        async function handleWaitlist(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submit-btn');
+            const originalText = btn.innerHTML;
+            
+            // Collect Form Data
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                mobile: document.getElementById('mobile').value,
+                occupation: document.getElementById('occupation').value,
+                age: document.getElementById('age').value,
+                literacy: document.getElementById('literacy').value,
+                os: document.getElementById('os').value,
+                goal: document.getElementById('goal').value,
+                referral: document.getElementById('referral').value,
+                interview: document.getElementById('interview').value
+            };
+
+            // Loading State
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> Securing Your Founder Status...`;
+            btn.classList.add('opacity-80', 'pointer-events-none');
+            if(window.lucide) lucide.createIcons();
+            
+            try {
+                const response = await fetch('https://pedestalapp.abhicode.in/save_waitlist.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const successState = document.getElementById('success-state');
+                    
+                    // Animate Success Reveal
+                    gsap.to(successState, {
+                        clipPath: 'circle(150% at 50% 50%)',
+                        duration: 0.8,
+                        ease: "power2.inOut",
+                        onComplete: () => {
+                            // Spawn sparks
+                            for(let i=0; i<30; i++) {
+                                const spark = document.createElement('div');
+                                const colors = ['bg-neon-green', 'bg-neon-blue', 'bg-neon-purple'];
+                                spark.className = `absolute w-2 h-2 rounded-full ${colors[Math.floor(Math.random()*colors.length)]} pointer-events-none z-50`;
+                                spark.style.left = '50%';
+                                spark.style.top = '50%';
+                                successState.appendChild(spark);
+                                
+                                gsap.to(spark, {
+                                    x: (Math.random() - 0.5) * window.innerWidth,
+                                    y: (Math.random() - 0.5) * window.innerHeight,
+                                    scale: 0,
+                                    opacity: 0,
+                                    duration: 1 + Math.random(),
+                                    ease: "power2.out",
+                                    onComplete: () => spark.remove()
+                                });
+                            }
+
+                            // Redirect after celebration
+                            setTimeout(() => {
+                                window.location.href = `registrationtemplate.html?name=${encodeURIComponent(formData.name)}`;
+                            }, 2500);
+                        }
+                    });
+                } else {
+                    alert('Submission failed: ' + result.message);
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('opacity-80', 'pointer-events-none');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                btn.innerHTML = originalText;
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+            }
+        }
+    </script>
+</body>
+</html>

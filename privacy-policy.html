@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | Pedestal</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: 'var(--bg-dark)',
+                        card: 'var(--bg-card)',
+                        border: 'var(--border-color)',
+                        neon: {
+                            green: 'var(--neon-green)',
+                            blue: 'var(--neon-blue)',
+                            purple: 'var(--neon-purple)',
+                            pink: 'var(--neon-pink)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+
+<body class="bg-dark text-slate-200 antialiased selection:bg-neon-purple selection:text-white min-h-screen relative overflow-x-hidden">
+    
+    <!-- Background Elements -->
+    <div class="bg-grid"></div>
+    <div id="data-streams-container" class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden"></div>
+    <div class="bg-glow-orb orb-1" style="top: -20%; left: -10%;"></div>
+    <div class="bg-glow-orb orb-2" style="bottom: 0%; right: -20%;"></div>
+    <div id="interactive-glow"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass border-b border-border py-4 transition-all duration-300">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-0 nav-anim">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+                    <img src="logo.png" alt="Pedestal Logo" class="w-full h-full object-contain">
+                </div>
+                <span class="font-display font-bold text-2xl tracking-wide text-white">Pedestal</span>
+            </a>
+            
+            <div class="hidden md:flex items-center gap-8 nav-anim">
+                <a href="index.html" class="text-sm font-medium hover:text-white transition-colors">Home</a>
+                <a href="index.html#problem" class="text-sm font-medium hover:text-white transition-colors">The Crisis</a>
+                <a href="index.html#features" class="text-sm font-medium hover:text-white transition-colors">Ecosystem</a>
+                <a href="index.html#learning" class="text-sm font-medium hover:text-white transition-colors">Micro-Lessons</a>
+                <a href="waitlist.html" class="text-sm font-medium hover:text-white transition-colors">Waitlist</a>
+            </div>
+            
+            <div class="flex items-center gap-4 nav-anim">
+                <a href="waitlist.html" class="hidden sm:flex btn-primary px-6 py-2.5 rounded-full text-sm items-center gap-2 group">
+                    <span>Start Learning</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+                
+                <!-- Mobile Menu Toggle -->
+                <button id="menu-toggle" class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl glass border border-border text-white">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] glass hidden flex-col items-center justify-center gap-8 p-6 text-center transform translate-x-full opacity-0">
+        <button id="menu-close" class="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-full glass border border-border text-white">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <a href="index.html" class="mobile-link text-2xl font-display font-bold text-white">Home</a>
+        <a href="index.html#problem" class="mobile-link text-2xl font-display font-bold text-white">The Crisis</a>
+        <a href="index.html#features" class="mobile-link text-2xl font-display font-bold text-white">Ecosystem</a>
+        <a href="index.html#learning" class="mobile-link text-2xl font-display font-bold text-white">Micro-Lessons</a>
+        <a href="waitlist.html" class="mobile-link text-2xl font-display font-bold text-white">Waitlist</a>
+        <a href="waitlist.html" class="btn-primary px-10 py-4 rounded-xl text-lg mt-4">Start Learning</a>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-32 relative z-10 max-w-4xl">
+        <div class="glass-card rounded-[2rem] p-8 md:p-12 border border-border">
+            <div class="flex items-center gap-6 mb-12 pb-8 border-b border-border/50">
+                <div class="w-16 h-16 rounded-2xl bg-neon-purple/20 flex items-center justify-center text-neon-purple shrink-0">
+                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h1 class="font-display text-4xl font-bold text-white mb-2">Privacy Policy</h1>
+                    <p class="text-neon-purple font-medium text-sm tracking-wide uppercase">Effective Date: April 29, 2026</p>
+                </div>
+            </div>
+
+            <div class="space-y-12 text-slate-300 leading-relaxed text-lg">
+                <section>
+                    <h3 class="font-display text-2xl font-bold text-white mb-4 flex items-center gap-3"><span class="text-neon-green text-sm px-2 py-1 bg-neon-green/10 rounded-md">01</span> Introduction and Scope</h3>
+                    <p>Welcome to Pedestal. We are committed to protecting your personal information and your right to privacy. This Privacy Policy ("Policy") governs the data processing practices of the Pedestal mobile application and its associated services (collectively, the "Service").</p>
+                    <p class="mt-4">By accessing or using the Service, you acknowledge that you have read and understood the terms of this Policy. This document serves as a legal notice to inform you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.</p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-2xl font-bold text-white mb-4 flex items-center gap-3"><span class="text-neon-blue text-sm px-2 py-1 bg-neon-blue/10 rounded-md">02</span> Information Collection and Processing</h3>
+                    <p>To provide a seamless gamified financial education experience, we collect several types of information for various purposes:</p>
+                    <ul class="list-disc list-outside ml-6 mt-4 space-y-3">
+                        <li><strong>Account Information:</strong> When you register for a Pedestal account, we collect personally identifiable information (PII) including, but not limited to, your email address and display name.</li>
+                        <li><strong>Engagement and Usage Data:</strong> We automatically collect information on how the Service is accessed and used. This includes technical data such as your device's Internet Protocol (IP) address, browser type, device identifiers, and timestamps of your activity.</li>
+                        <li><strong>Learning Analytics:</strong> To facilitate our gamification engine, we track internal metrics including Learning Progress, Experience Points (XP), and Streak Milestones.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-2xl font-bold text-white mb-4 flex items-center gap-3"><span class="text-neon-pink text-sm px-2 py-1 bg-neon-pink/10 rounded-md">03</span> Purpose of Processing (How We Use Data)</h3>
+                    <p>Pedestal processes your data under the legal basis of "Contractual Necessity" and "Legitimate Interest." Specifically, your data is used to:</p>
+                    <ul class="list-disc list-outside ml-6 mt-4 space-y-3">
+                        <li>Maintain and provide the core functionalities of the Pedestal experience.</li>
+                        <li>Personalize educational content and track academic milestones.</li>
+                        <li>Monitor the usage of the Service to detect, prevent, and address technical issues or fraudulent activity.</li>
+                        <li>Communicate administrative updates or security alerts.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-2xl font-bold text-white mb-4 flex items-center gap-3"><span class="text-neon-purple text-sm px-2 py-1 bg-neon-purple/10 rounded-md">04</span> Data Security and Architecture</h3>
+                    <p>We prioritize the integrity and confidentiality of your data. Pedestal employs a Zero-Trust Security Model facilitated through our enterprise-grade backend partners, Supabase and Google Firebase.</p>
+                    <ul class="list-disc list-outside ml-6 mt-4 space-y-3">
+                        <li><strong>Encryption:</strong> All data in transit is protected via Transport Layer Security (TLS), and data at rest is secured using industry-standard AES-256 encryption.</li>
+                        <li><strong>Infrastructure:</strong> By leveraging decentralized authentication and authorized access protocols, we ensure that your personal information is shielded from unauthorized access or disclosure.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-2xl font-bold text-white mb-4 flex items-center gap-3"><span class="text-neon-green text-sm px-2 py-1 bg-neon-green/10 rounded-md">05</span> Data Sharing and Third-Party Disclosure</h3>
+                    <p>We do not sell, trade, or otherwise transfer your PII to outside parties for marketing purposes. Data sharing is strictly limited to:</p>
+                    <ul class="list-disc list-outside ml-6 mt-4 space-y-3">
+                        <li><strong>Service Providers:</strong> We may employ third-party companies (e.g., Firebase, Supabase) to facilitate our Service or perform Service-related tasks under strict confidentiality agreements.</li>
+                        <li><strong>Legal Compliance:</strong> We may disclose your information where required to do so by law or in response to valid requests by public authorities (e.g., a court or a government agency).</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-2xl font-bold text-white mb-4 flex items-center gap-3"><span class="text-neon-blue text-sm px-2 py-1 bg-neon-blue/10 rounded-md">06</span> User Rights and Data Retention</h3>
+                    <p>Under applicable data protection laws (including GDPR and relevant local frameworks), you possess the following rights:</p>
+                    <ul class="list-disc list-outside ml-6 mt-4 space-y-3">
+                        <li><strong>Right of Access:</strong> You may request a copy of the personal data we hold about you.</li>
+                        <li><strong>Right to Rectification:</strong> You have the right to correct any incomplete or inaccurate information.</li>
+                        <li><strong>Right to Erasure:</strong> You may request the permanent deletion of your account and associated data at any time. To exercise this right, please visit our <a href="delete-account.html" class="text-neon-blue font-bold hover:underline">Account Deletion Page</a>.</li>
+                    </ul>
+                    <p class="mt-6">We retain your personal data only for as long as is necessary for the purposes set out in this Privacy Policy and to comply with our legal obligations.</p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-2xl font-bold text-white mb-4 flex items-center gap-3"><span class="text-neon-pink text-sm px-2 py-1 bg-neon-pink/10 rounded-md">07</span> Updates to This Policy</h3>
+                    <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Effective Date" at the top. You are advised to review this Privacy Policy periodically for any changes.</p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-2xl font-bold text-white mb-4 flex items-center gap-3"><span class="text-neon-purple text-sm px-2 py-1 bg-neon-purple/10 rounded-md">08</span> Contact Us</h3>
+                    <p>If you have any questions about this Privacy Policy or our data practices, please contact our legal compliance team at:</p>
+                    <p class="mt-4 font-bold text-white flex items-center gap-2">
+                        <i data-lucide="mail" class="w-5 h-5 text-neon-purple"></i>
+                        pedestalfinance@gmail.com
+                    </p>
+                </section>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-border/50 text-center">
+                <a href="index.html" class="text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark py-12 relative z-10 border-t border-border">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-0">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img src="logo.png" alt="Pedestal Logo" class="w-full h-full object-contain">
+                    </div>
+                    <span class="font-display font-bold text-2xl text-white">Pedestal</span>
+                </div>
+                
+                <div class="flex gap-6 text-sm text-slate-500 font-medium">
+                    <a href="privacy-policy.html" class="hover:text-neon-green transition-colors">Privacy</a>
+                    <a href="delete-account.html" class="hover:text-neon-green transition-colors">Data Deletion</a>
+                    <a href="contactus" class="hover:text-neon-green transition-colors">Contact Us</a>
+                </div>
+                
+                <div class="flex gap-4">
+                    <a href="mailto:pedestalfinance@gmail.com" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-slate-400 hover:text-white hover:border-neon-green transition-all" title="Email Us"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                </div>
+            </div>
+            <div class="text-center mt-8 text-xs text-slate-600 font-medium">
+                &copy; 2026 Pedestal Technologies. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

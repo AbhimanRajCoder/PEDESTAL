@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jigsaw Puzzle — Pedestal</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07090D;font-family:'Outfit',sans-serif;color:#fff;overflow-x:hidden}
+#jigsaw-section{position:relative;width:100%;min-height:100vh;background:#07090D;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:60px 24px 40px}
+.jig-header{text-align:center;margin-bottom:40px;z-index:2}
+.jig-header .tag{color:#00F5A0;font-size:11px;text-transform:uppercase;letter-spacing:0.3em;font-weight:700;margin-bottom:12px}
+.jig-header h2{font-size:clamp(32px,5vw,52px);font-weight:900;line-height:1.1;margin-bottom:12px}
+.jig-header .sub{color:#94a3b8;font-size:16px;font-style:italic}
+.jig-layout{display:flex;gap:24px;width:100%;max-width:1100px;flex:1;min-height:0}
+.jig-canvas-wrap{flex:0 0 55%;position:relative;border-radius:24px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;background:#0a0c12;height:500px}
+.jig-canvas-wrap canvas{width:100%!important;height:100%!important;display:block;touch-action:none}
+.jig-panel{flex:0 0 calc(45% - 24px);background:#0F1117;border-radius:24px;border:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 32px;text-align:center;height:500px;transition:background 0.6s ease}
+.jig-panel.revealed{background:rgba(0,245,160,0.03)}
+.panel-waiting{display:flex;flex-direction:column;align-items:center;gap:16px}
+.panel-waiting p{color:#64748b;font-style:italic;font-size:15px;line-height:1.7}
+.panel-dots{display:flex;gap:8px}
+.panel-dots span{width:8px;height:8px;border-radius:50%;background:#334155;animation:dotPulse 1.5s ease-in-out infinite}
+.panel-dots span:nth-child(2){animation-delay:0.3s}
+.panel-dots span:nth-child(3){animation-delay:0.6s}
+@keyframes dotPulse{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+.panel-reveal{display:none;flex-direction:column;align-items:center;gap:20px;width:100%}
+.panel-reveal .unlock-tag{color:#00F5A0;font-size:11px;text-transform:uppercase;letter-spacing:0.3em;font-weight:700}
+.panel-reveal .word{font-size:clamp(28px,4vw,42px);font-weight:900;line-height:1.1}
+.panel-reveal .word-sub{font-size:clamp(24px,3.5vw,36px);font-weight:900;opacity:0.7}
+.panel-reveal .def{color:#cbd5e1;font-size:15px;line-height:1.8;max-width:320px}
+.xp-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,245,160,0.1);border:1px solid rgba(0,245,160,0.2);border-radius:100px;padding:8px 20px;font-size:14px;font-weight:700;color:#00F5A0}
+.jig-cta{width:100%;padding:14px;border-radius:14px;border:none;background:#00F5A0;color:#07090D;font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s}
+.jig-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,245,160,0.25)}
+.jig-reset{background:none;border:none;color:#64748b;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;margin-top:20px;display:none;align-items:center;gap:6px;transition:color 0.2s}
+.jig-reset:hover{color:#fff}
+.ghost-outline{position:absolute;pointer-events:none;border:2px dashed rgba(255,255,255,0.08);border-radius:16px;z-index:0}
+@media(max-width:768px){
+.jig-layout{flex-direction:column}
+.jig-canvas-wrap{flex:none;width:100%;height:350px}
+.jig-panel{flex:none;width:100%;height:auto;min-height:280px}
+#jigsaw-section{padding:40px 16px 32px}
+.jig-header h2{font-size:28px}
+}
+</style>
+</head>
+<body>
+<section id="jigsaw-section">
+<div class="jig-header" id="jig-header">
+<div class="tag">FINANCIAL CHALLENGE</div>
+<h2>Assemble the Truth.<br>Learn in Seconds.</h2>
+<p class="sub">"Drag the pieces. Reveal the concept."</p>
+</div>
+<div class="jig-layout">
+<div class="jig-canvas-wrap" id="canvas-wrap">
+<canvas id="puzzle-canvas"></canvas>
+</div>
+<div class="jig-panel" id="jig-panel">
+<div class="panel-waiting" id="panel-wait">
+<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.3em;font-weight:700;color:#00F5A0;margin-bottom:8px">💡 HINT</div>
+<p id="hint-text" style="font-size:17px;color:#94a3b8;line-height:1.6;font-style:italic;max-width:280px"></p>
+<div style="margin-top:16px;font-size:12px;color:#334155;font-weight:500">Assemble the pieces to reveal the answer</div>
+<div class="panel-dots" style="margin-top:8px"><span></span><span></span><span></span></div>
+<button id="peek-btn" onclick="peekWord()" style="display:none;margin-top:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#64748b;font-family:'Outfit',sans-serif;font-size:12px;padding:8px 18px;border-radius:100px;cursor:pointer;align-items:center;gap:6px;transition:all 0.2s"
+onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#64748b'">👁 Peek at the word (3s)</button>
+</div>
+<div class="panel-reveal" id="panel-reveal">
+<div class="unlock-tag">CONCEPT UNLOCKED ✓</div>
+<div class="word" id="rv-word"></div>
+<div class="word-sub" id="rv-sub"></div>
+<div class="def" id="rv-def"></div>
+<div class="xp-badge" id="rv-xp"></div>
+<button class="jig-cta" onclick="window.open('waitlist.html','_self')">Join Pedestal — It's Free →</button>
+</div>
+</div>
+</div>
+<button class="jig-reset" id="jig-reset" onclick="resetPuzzle()">↻ Try another concept →</button>
+</section>
+    <!-- Footer -->
+    <footer style="width:100%; padding: 40px 24px; background: #07090D; border-top: 1px solid rgba(255,255,255,0.06); position: relative; z-index: 10;">
+        <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; md:flex-row; justify-content: space-between; align-items: center; gap: 24px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="logo.png" alt="Logo" style="width: 24px; height: 24px; object-contain: true;">
+                <span style="font-weight: 900; font-size: 20px;">Pedestal</span>
+            </div>
+            <div style="display: flex; gap: 24px; font-size: 13px; color: #64748b; font-weight: 600;">
+                <a href="index.html" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#00F5A0'" onmouseout="this.style.color='#64748b'">Home</a>
+                <a href="privacy-policy.html" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#00F5A0'" onmouseout="this.style.color='#64748b'">Privacy</a>
+                <a href="mailto:pedestalfinance@gmail.com" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#00F5A0'" onmouseout="this.style.color='#64748b'">Contact</a>
+            </div>
+            <div style="font-size: 11px; color: #334155;">&copy; 2026 Pedestal Technologies</div>
+        </div>
+    </footer>
+
+    <script>
+const puzzleWords=[
+{word:"COMPOUND",color:"#00F5A0",subtitle:"INTEREST",hint:"What type of interest earns you money on your already-earned interest?",definition:"Interest on interest. ₹10,000 at 12% becomes ₹31,058 in 10 years.",xp:150},
+{word:"INFLATION",color:"#FF6B35",subtitle:"EXPLAINED",hint:"What invisible force makes your ₹100 worth less every single year?",definition:"Your ₹100 today buys ₹94 worth of goods next year. Silently.",xp:120},
+{word:"LIQUIDITY",color:"#00D9FF",subtitle:"MATTERS",hint:"What measures how quickly you can turn an asset into usable cash?",definition:"How fast you can convert an asset to cash without losing value.",xp:130},
+{word:"BULL RUN",color:"#FBBF24",subtitle:"VS BEAR",hint:"What do we call it when markets keep rising 20%+ with strong optimism?",definition:"Markets rising 20%+ from recent lows. Greed drives it. Fear ends it.",xp:140},
+{word:"RISK",color:"#A855F7",subtitle:"VS REWARD",hint:"What must you always accept more of if you want higher potential returns?",definition:"Higher potential return always comes with higher potential loss. Always.",xp:110},
+{word:"MUTUAL",color:"#F472B6",subtitle:"FUNDS",hint:"What pools money from many investors and is managed by a professional?",definition:"A professionally managed fund that pools money from many investors to buy securities.",xp:130},
+{word:"BUDGET",color:"#34D399",subtitle:"PLANNING",hint:"What's the plan that tracks every rupee you earn and spend each month?",definition:"A spending plan based on income and expenses. The first step to financial freedom.",xp:100},
+{word:"EQUITY",color:"#60A5FA",subtitle:"SHARES",hint:"What do you actually own when you buy a piece of a company on the stock market?",definition:"Ownership stake in a company. When the company grows, your equity grows too.",xp:140},
+{word:"CREDIT",color:"#FB923C",subtitle:"SCORE",hint:"What 3-digit number between 300-900 decides if a bank will trust you with a loan?",definition:"A number from 300-900 that tells lenders how reliable you are with borrowed money.",xp:120},
+{word:"RUPEE",color:"#E879F9",subtitle:"COST AVG",hint:"What strategy involves investing a fixed amount regularly regardless of market price?",definition:"Investing fixed amounts at regular intervals. You buy more when prices are low, less when high.",xp:110}
+];
+
+const canvas=document.getElementById('puzzle-canvas');
+const ctx=canvas.getContext('2d');
+const wrap=document.getElementById('canvas-wrap');
+let W,H,dpr,pieces=[],dragging=null,dragOff={x:0,y:0},solvedCount=0,failAttempts=0,peekActive=false,currentWord,headerHidden=false,animFrame;
+
+function pickWord(){
+  currentWord=puzzleWords[Math.floor(Math.random()*puzzleWords.length)];
+  const hintEl=document.getElementById('hint-text');
+  if(hintEl) hintEl.textContent='"'+currentWord.hint+'"';
+}
+
+function resize(){
+  const r=wrap.getBoundingClientRect();
+  dpr=Math.min(window.devicePixelRatio,2);
+  W=r.width; H=r.height;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function createPieces(){
+  pieces=[]; solvedCount=0;
+  const isMobile = W < 500;
+  // Strip spaces — each letter becomes one piece
+  const letters = currentWord.word.split('').filter(ch => ch !== ' ');
+  const n = letters.length;
+
+  // Compute best grid layout
+  let cols, rows;
+  if(n <= 3)       { cols = n; rows = 1; }
+  else if(n <= 4)  { cols = 4; rows = 1; }
+  else if(n <= 6)  { cols = 3; rows = 2; }
+  else if(n <= 8)  { cols = 4; rows = 2; }
+  else             { cols = 3; rows = 3; }
+
+  // Piece size fits the grid + canvas
+  const gap = isMobile ? 4 : 8;
+  const maxPW = Math.floor((W * 0.92 - gap*(cols+1)) / cols);
+  const maxPH = Math.floor((H * 0.72 - gap*(rows+1)) / rows);
+  const pw = Math.min(maxPW, isMobile ? 72 : 110);
+  const ph = Math.min(maxPH, isMobile ? 88 : 130);
+
+  const totalW = cols*pw + (cols-1)*gap;
+  const totalH = rows*ph + (rows-1)*gap;
+  const ox = (W - totalW) / 2;
+  const oy = (H - totalH) / 2;
+  const padX = pw + 16;
+  const padY = ph + 16;
+
+  // Pre-calculate non-overlapping scatter positions
+  const scatterPositions = [];
+  for(let i=0; i<n; i++){
+    let sx, sy, attempts=0, ok=false;
+    while(!ok && attempts<300){
+      sx = padX/2 + Math.random()*(W - padX);
+      sy = padY/2 + Math.random()*(H - padY);
+      ok = true;
+      for(const sp of scatterPositions){
+        if(Math.abs(sx-sp.x)<pw*0.85 && Math.abs(sy-sp.y)<ph*0.85){ ok=false; break; }
+      }
+      attempts++;
+    }
+    scatterPositions.push({x: sx - pw/2, y: sy - ph/2});
+  }
+
+  // Create one piece per letter, in correct left→right, top→bottom order
+  for(let i=0; i<n; i++){
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+    const tx = ox + c*(pw+gap);
+    const ty = oy + r*(ph+gap);
+    const sp = scatterPositions[i];
+    const sRot = (Math.random()-0.5)*40;
+    pieces.push({
+      x: sp.x, y: sp.y, w: pw, h: ph,
+      tx: tx, ty: ty,
+      rot: sRot,
+      scatterX: sp.x, scatterY: sp.y, scatterRot: sRot,
+      locked: false, hovered: false,
+      char: letters[i],
+      phase: Math.random()*Math.PI*2,
+      floatSpeed: 3+Math.random()*2,
+      col: c, row: r, cols: cols, rows: rows,
+      emissive: 0.08,
+      scale: 1
+    });
+  }
+}
+
+function drawJigsawPath(p){
+  const hw=p.w/2, hh=p.h/2;
+  const tab=Math.min(p.w, p.h)*0.15;
+  ctx.beginPath();
+  // Top edge — tab in if row > 0
+  ctx.moveTo(-hw, -hh);
+  if(p.row > 0){
+    ctx.lineTo(-tab, -hh);
+    ctx.bezierCurveTo(-tab, -hh-tab*1.2, tab, -hh-tab*1.2, tab, -hh);
+  }
+  ctx.lineTo(hw, -hh);
+  // Right edge — tab out if not last col
+  if(p.col < p.cols-1){
+    ctx.lineTo(hw, -tab);
+    ctx.bezierCurveTo(hw+tab*1.2, -tab, hw+tab*1.2, tab, hw, tab);
+  }
+  ctx.lineTo(hw, hh);
+  // Bottom edge — tab out if not last row
+  if(p.row < p.rows-1){
+    ctx.lineTo(tab, hh);
+    ctx.bezierCurveTo(tab, hh+tab*1.2, -tab, hh+tab*1.2, -tab, hh);
+  }
+  ctx.lineTo(-hw, hh);
+  // Left edge — tab in if col > 0
+  if(p.col > 0){
+    ctx.lineTo(-hw, tab);
+    ctx.bezierCurveTo(-hw-tab*1.2, tab, -hw-tab*1.2, -tab, -hw, -tab);
+  }
+  ctx.lineTo(-hw, -hh);
+  ctx.closePath();
+}
+
+function drawPiece(p){
+  ctx.save();
+  const cx=p.x+p.w/2, cy=p.y+p.h/2;
+  ctx.translate(cx, cy);
+  ctx.rotate(p.rot*Math.PI/180);
+  ctx.scale(p.scale, p.scale);
+
+  // Shadow
+  ctx.shadowColor='rgba(0,0,0,0.5)';
+  ctx.shadowBlur = p.locked ? 6 : (p.hovered||p===dragging ? 24 : 14);
+  ctx.shadowOffsetY = p.locked ? 1 : (p===dragging ? 10 : 4);
+
+  // Path
+  drawJigsawPath(p);
+
+  // Fill with emissive tint
+  const cR=parseInt(currentWord.color.slice(1,3),16);
+  const cG=parseInt(currentWord.color.slice(3,5),16);
+  const cB=parseInt(currentWord.color.slice(5,7),16);
+  const em=p.emissive;
+  const fR=Math.floor(15 + cR/255*em*220);
+  const fG=Math.floor(17 + cG/255*em*220);
+  const fB=Math.floor(23 + cB/255*em*220);
+  ctx.fillStyle=`rgb(${fR},${fG},${fB})`;
+  ctx.fill();
+
+  // Border
+  ctx.shadowColor='transparent';
+  ctx.lineWidth = p.locked ? 2 : 1;
+  ctx.strokeStyle = p.locked ? currentWord.color : (p.hovered ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.06)');
+  ctx.stroke();
+
+  // Top bevel highlight
+  ctx.beginPath();
+  ctx.moveTo(-p.w/2, -p.h/2);
+  ctx.lineTo(p.w/2, -p.h/2);
+  ctx.strokeStyle='rgba(255,255,255,0.06)';
+  ctx.lineWidth=1;
+  ctx.stroke();
+
+  // Character
+  if(p.char){
+    const alpha = p.locked ? 1 : 0.18;
+    ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+    ctx.font=`900 ${p.w*0.4}px Outfit`;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(p.char, 0, 2);
+  }
+  ctx.restore();
+}
+
+function drawGhostSlots(){
+  if(!pieces.length) return;
+  // Use actual piece target positions for perfect alignment
+  ctx.save();
+  pieces.forEach(p=>{
+    if(p.locked) return;
+    // Check if dragging piece is near this slot
+    let nearSlot = false;
+    if(dragging === p){
+      const dx = Math.abs((p.x+p.w/2) - (p.tx+p.w/2));
+      const dy = Math.abs((p.y+p.h/2) - (p.ty+p.h/2));
+      nearSlot = (dx < 80 && dy < 80);
+    }
+    ctx.save();
+    if(nearSlot){
+      // Glowing green slot when piece is near
+      ctx.shadowColor = currentWord.color;
+      ctx.shadowBlur = 20;
+      ctx.strokeStyle = currentWord.color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([8, 6]);
+    }
+    // Draw rounded rect for slot
+    const r = 8;
+    ctx.beginPath();
+    ctx.moveTo(p.tx + r, p.ty);
+    ctx.lineTo(p.tx + p.w - r, p.ty);
+    ctx.arcTo(p.tx + p.w, p.ty, p.tx + p.w, p.ty + r, r);
+    ctx.lineTo(p.tx + p.w, p.ty + p.h - r);
+    ctx.arcTo(p.tx + p.w, p.ty + p.h, p.tx + p.w - r, p.ty + p.h, r);
+    ctx.lineTo(p.tx + r, p.ty + p.h);
+    ctx.arcTo(p.tx, p.ty + p.h, p.tx, p.ty + p.h - r, r);
+    ctx.lineTo(p.tx, p.ty + r);
+    ctx.arcTo(p.tx, p.ty, p.tx + r, p.ty, r);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  });
+  ctx.restore();
+}
+
+function draw(t){
+  ctx.clearRect(0,0,W,H);
+  drawGhostSlots();
+  // Sort: locked first, then unlocked, dragging on top
+  const sorted=[...pieces].sort((a,b)=>{
+    if(a===dragging)return 1; if(b===dragging)return -1;
+    if(a.locked && !b.locked)return -1;
+    if(!a.locked && b.locked)return 1;
+    return 0;
+  });
+  sorted.forEach(p=>drawPiece(p));
+}
+
+function animate(t){
+  // Float idle animation
+  pieces.forEach(p=>{
+    if(p.locked || p===dragging) return;
+    p.y = p.scatterY + Math.sin(t/1000/p.floatSpeed*Math.PI*2 + p.phase)*5;
+    p.rot = p.scatterRot + Math.sin(t/1000/8 + p.phase)*0.4;
+  });
+  // Lerp scale (no hover highlight emissive — challenge mode)
+  pieces.forEach(p=>{
+    const ts = p===dragging ? 1.08 : 1;
+    p.scale += (ts - p.scale)*0.15;
+    const te = p.locked ? 0.25 : (peekActive && !p.locked ? 0.18 : (dragging && p!==dragging ? 0.02 : 0.08));
+    p.emissive += (te - p.emissive)*0.1;
+  });
+  draw(t);
+  animFrame = requestAnimationFrame(animate);
+}
+
+function hitTest(mx,my){
+  for(let i=pieces.length-1; i>=0; i--){
+    const p=pieces[i];
+    if(p.locked) continue;
+    const cx=p.x+p.w/2, cy=p.y+p.h/2;
+    const dx=mx-cx, dy=my-cy;
+    const cos=Math.cos(-p.rot*Math.PI/180), sin=Math.sin(-p.rot*Math.PI/180);
+    const lx=dx*cos - dy*sin, ly=dx*sin + dy*cos;
+    if(Math.abs(lx) < p.w/2*1.2 && Math.abs(ly) < p.h/2*1.2) return p;
+  }
+  return null;
+}
+
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  let clientX, clientY;
+  if(e.touches && e.touches.length > 0){
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else if(e.changedTouches && e.changedTouches.length > 0){
+    clientX = e.changedTouches[0].clientX;
+    clientY = e.changedTouches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  return { x: clientX - r.left, y: clientY - r.top };
+}
+
+function onDown(e){
+  e.preventDefault();
+  const pos=getPos(e);
+  const p=hitTest(pos.x, pos.y);
+  if(!p) return;
+  dragging = p;
+  dragOff.x = pos.x - p.x;
+  dragOff.y = pos.y - p.y;
+  canvas.style.cursor='grabbing';
+  if(!headerHidden){
+    headerHidden=true;
+    gsap.to('#jig-header',{opacity:0,y:-20,duration:0.5,ease:'power2.out'});
+  }
+  // Bring to front
+  const idx=pieces.indexOf(p);
+  pieces.splice(idx,1); pieces.push(p);
+}
+
+function onMove(e){
+  e.preventDefault();
+  const pos=getPos(e);
+  if(dragging){
+    // Direct follow — responsive drag
+    dragging.x = pos.x - dragOff.x;
+    dragging.y = pos.y - dragOff.y;
+    dragging.rot += (0 - dragging.rot)*0.15;
+    return;
+  }
+  const found=hitTest(pos.x, pos.y);
+  pieces.forEach(p=>p.hovered = (p===found));
+  canvas.style.cursor = found ? 'grab' : 'default';
+}
+
+function onUp(e){
+  if(!dragging) return;
+  const p=dragging;
+  dragging=null;
+  canvas.style.cursor='default';
+
+  // Check snap distance (center-to-center)
+  const pcx=p.x+p.w/2, pcy=p.y+p.h/2;
+  const tcx=p.tx+p.w/2, tcy=p.ty+p.h/2;
+  const dist=Math.sqrt((pcx-tcx)**2 + (pcy-tcy)**2);
+
+  if(dist < 80){
+    p.locked=true;
+    solvedCount++;
+    gsap.to(p,{x:p.tx, y:p.ty, rot:0, duration:0.35, ease:'elastic.out(1,0.5)'});
+    gsap.to(p,{emissive:1, duration:0.15, yoyo:true, repeat:1, onComplete:()=>{p.emissive=0.25}});
+    if(solvedCount===pieces.length) setTimeout(onSolve, 400);
+  } else {
+    failAttempts++;
+    gsap.to(p,{x:p.scatterX, y:p.scatterY, rot:p.scatterRot, duration:0.5, ease:'back.out(2.5)'});
+    gsap.to(p,{emissive:0.6, duration:0.12, yoyo:true, repeat:1, onComplete:()=>{p.emissive=0.08}});
+    const origRot=p.scatterRot;
+    gsap.to(p,{rot:origRot+5, duration:0.04, yoyo:true, repeat:5, onComplete:()=>{p.rot=origRot}});
+    // Show peek button after 3 failed attempts
+    if(failAttempts === 3){
+      const peekBtn = document.getElementById('peek-btn');
+      if(peekBtn){ peekBtn.style.display='inline-flex'; gsap.from(peekBtn,{opacity:0,y:8,duration:0.4}); }
+    }
+  }
+}
+
+function onSolve(){
+  const tl=gsap.timeline();
+  tl.to(pieces,{emissive:0.9, duration:0.4, stagger:0.05},0);
+  tl.to(pieces,{emissive:0.3, duration:0.3, stagger:0.03},0.5);
+  pieces.forEach(p=>{ tl.to(p,{scale:0.96, duration:0.12},0.2); tl.to(p,{scale:1.06, duration:0.18},0.32); tl.to(p,{scale:1, duration:0.2},0.5); });
+  tl.add(()=>spawnConfetti(),0.8);
+  tl.add(()=>{
+    const panel=document.getElementById('jig-panel');
+    const wait=document.getElementById('panel-wait');
+    const reveal=document.getElementById('panel-reveal');
+    panel.classList.add('revealed');
+    gsap.to(wait,{opacity:0, duration:0.3, onComplete:()=>{wait.style.display='none'}});
+    document.getElementById('rv-word').style.color=currentWord.color;
+    document.getElementById('rv-sub').textContent=currentWord.subtitle;
+    document.getElementById('rv-sub').style.color=currentWord.color;
+    document.getElementById('rv-def').textContent=currentWord.definition;
+    document.getElementById('rv-xp').textContent=`+${currentWord.xp} XP  •  🔥 Streak +1`;
+    reveal.style.display='flex';
+    gsap.from(reveal,{opacity:0, y:30, duration:0.6, ease:'power3.out'});
+    const wordEl=document.getElementById('rv-word');
+    const letters=currentWord.word.split('');
+    wordEl.innerHTML=letters.map(l=>`<span style="display:inline-block;opacity:0;transform:scale(0)">${l}</span>`).join('');
+    gsap.to(wordEl.querySelectorAll('span'),{opacity:1, scale:1, duration:0.3, stagger:0.04, ease:'back.out(2)', delay:0.2});
+    gsap.from(document.getElementById('rv-sub'),{opacity:0, y:15, duration:0.4, delay:0.5});
+    gsap.from(document.getElementById('rv-def'),{opacity:0, y:15, duration:0.5, delay:0.7});
+    gsap.from(document.getElementById('rv-xp'),{opacity:0, scale:0.5, duration:0.4, delay:0.9, ease:'back.out(3)'});
+    gsap.from(document.querySelector('.jig-cta'),{opacity:0, y:10, duration:0.4, delay:1.2});
+  },1.0);
+  tl.add(()=>{
+    const btn=document.getElementById('jig-reset');
+    btn.style.display='flex';
+    gsap.from(btn,{opacity:0, y:10, duration:0.4});
+  },1.8);
+}
+
+function spawnConfetti(){
+  const colors=[currentWord.color,'#fff','#FFD700','#FF6B35','#00D9FF'];
+  const conf=[];
+  for(let i=0;i<40;i++){
+    conf.push({x:W/2, y:H/2, vx:(Math.random()-0.5)*12, vy:-Math.random()*10-4,
+      size:3+Math.random()*5, color:colors[Math.floor(Math.random()*colors.length)],
+      rot:Math.random()*360, vr:(Math.random()-0.5)*10, life:1});
+  }
+  function step(){
+    let alive=false;
+    conf.forEach(c=>{
+      if(c.life<=0)return;
+      alive=true;
+      c.x+=c.vx; c.y+=c.vy; c.vy+=0.25; c.rot+=c.vr; c.life-=0.015;
+      ctx.save();
+      ctx.translate(c.x,c.y); ctx.rotate(c.rot*Math.PI/180);
+      ctx.globalAlpha=Math.max(0,c.life);
+      ctx.fillStyle=c.color;
+      ctx.fillRect(-c.size/2,-c.size/2,c.size,c.size);
+      ctx.restore();
+    });
+    if(alive) requestAnimationFrame(step);
+  }
+  step();
+}
+
+function peekWord(){
+  if(peekActive) return;
+  peekActive = true;
+  const peekBtn = document.getElementById('peek-btn');
+  if(peekBtn) peekBtn.innerHTML = '✨ Peeking...';
+  
+  // Briefly show where each piece goes
+  pieces.forEach(p => {
+    if(!p.locked) {
+      gsap.to(p, {
+        x: p.tx, y: p.ty, rot: 0, 
+        duration: 0.6, ease: 'power2.out'
+      });
+    }
+  });
+
+  // Hide after 3 seconds
+  setTimeout(() => {
+    pieces.forEach(p => {
+      if(!p.locked) {
+        gsap.to(p, {
+          x: p.scatterX, y: p.scatterY, rot: p.scatterRot,
+          duration: 0.8, ease: 'back.inOut(1.7)'
+        });
+      }
+    });
+    setTimeout(() => { 
+      peekActive = false; 
+      if(peekBtn) peekBtn.innerHTML = '👁 Peek at the word (3s)';
+    }, 800);
+  }, 3000);
+}
+
+function resetPuzzle(){
+  cancelAnimationFrame(animFrame);
+  headerHidden=false;
+  failAttempts = 0;
+  peekActive = false;
+  
+  const peekBtn = document.getElementById('peek-btn');
+  if(peekBtn) peekBtn.style.display = 'none';
+
+  gsap.set('#jig-header',{clearProps:'all'});
+  gsap.to('#jig-header',{opacity:1, y:0, duration:0.5});
+  const panel=document.getElementById('jig-panel');
+  const wait=document.getElementById('panel-wait');
+  const reveal=document.getElementById('panel-reveal');
+  panel.classList.remove('revealed');
+  wait.style.display='flex'; wait.style.opacity='1';
+  reveal.style.display='none';
+  document.getElementById('jig-reset').style.display='none';
+  pickWord(); resize(); createPieces();
+  animFrame=requestAnimationFrame(animate);
+}
+
+function init(){
+  pickWord(); resize(); createPieces();
+  // Events
+  canvas.addEventListener('mousedown',onDown);
+  canvas.addEventListener('mousemove',onMove);
+  canvas.addEventListener('mouseup',onUp);
+  canvas.addEventListener('mouseleave',onUp);
+  canvas.addEventListener('touchstart',onDown,{passive:false});
+  canvas.addEventListener('touchmove',onMove,{passive:false});
+  canvas.addEventListener('touchend',onUp,{passive:false});
+  window.addEventListener('resize',()=>{resize(); if(solvedCount===0)createPieces()});
+  animFrame=requestAnimationFrame(animate);
+}
+
+init();
+</script>
+</body>
+</html>
